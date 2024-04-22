@@ -1,12 +1,23 @@
 import express from "express";
 import db from "@repo/db/client";
+import { z } from "zod";
+
 const app = express();
 
 app.use(express.json())
+// Add zod validation here
+const validateWebhook = z.object({
+    token: z.string(),
+    user_identifier: z.string(),
+    amount: z.string()
+
+});
+// zod infer
+type WebhookPayload = z.infer<typeof validateWebhook>;
 
 app.post("/hdfcWebhook", async (req, res) => {
-    //TODO: Add zod validation here?
     //TODO: HDFC bank should ideally send us a secret so we know this is sent by them
+
     const paymentInformation: {
         token: string;
         userId: string;
@@ -17,6 +28,15 @@ app.post("/hdfcWebhook", async (req, res) => {
         amount: req.body.amount
     };
 
+    // Validate the webhook payload
+    const { success } = validateWebhook.safeParse(paymentInformation);
+    if (!success) {
+        res.status(400).json({
+            message: "Invalid request"
+        });
+        return;
+    }
+
     try {
         await db.$transaction([
             db.balance.updateMany({
@@ -25,7 +45,6 @@ app.post("/hdfcWebhook", async (req, res) => {
                 },
                 data: {
                     amount: {
-                        // You can also get this from your DB
                         increment: Number(paymentInformation.amount)
                     }
                 }
