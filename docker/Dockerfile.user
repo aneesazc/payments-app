@@ -1,32 +1,18 @@
-# Use an official Node.js image as a base
 FROM node:20.12.0-alpine3.19
 
-# Set the working directory
 WORKDIR /usr/src/app
 
-# Copy the main package.json and lock file
 COPY package.json package-lock.json turbo.json tsconfig.json ./
 
-# Copy .env files
-COPY apps/user-app/.env .env.userapp
-COPY packages/db/.env .env.db
-
-# Copy only the main app and necessary packages
-COPY apps/user-app ./apps/user-app
+COPY apps ./apps
 COPY packages ./packages
 
 # Install dependencies
 RUN npm install
+# Can you add a script to the global package.json that does this?
+RUN cd packages/db && npx prisma generate && cd ../..
 
-# Generate Prisma client
-RUN npx dotenv -e .env.db -- prisma generate
+# Can you filter the build down to just one app?
+RUN npm run build
 
-# Build the user-app
-RUN npx dotenv -e .env.userapp -- turbo run build --filter=./apps/user-app
-
-# Set environment variables (NEXTAUTH_URL will be set at runtime)
-ENV JWT_SECRET=test
-ENV DATABASE_URL="postgresql://anees.azc:vD96EaLGncHM@ep-lucky-scene-32290696.us-east-2.aws.neon.tech/paytm-app?sslmode=require"
-
-# Start the user-app
-CMD ["npx", "dotenv", "-e", ".env.userapp", "--", "npm", "run", "start"]
+CMD ["npm", "run", "start-user-app"]

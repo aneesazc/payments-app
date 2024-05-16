@@ -1,19 +1,17 @@
 {
   "name": "week-18",
   "private": true,
-  
   "scripts": {
     "build": "turbo build",
     "dev": "turbo dev",
     "lint": "turbo lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
-    "db:generate": "cd ./packages/db && npx dotenv -e .env -- prisma generate && cd ../..",
-    "start-user-app": "cd ./apps/user-app && npx dotenv -e ./.env -- npm run start"
+    "db:generate": "cd ./packages/db && npx prism generate && cd ../..",
+    "start-user-app": "cd ./apps/user-app && npm run start"
   },
   "devDependencies": {
     "@repo/eslint-config": "*",
     "@repo/typescript-config": "*",
-    "dotenv-cli": "^7.4.2",
     "prettier": "^3.2.5",
     "turbo": "latest"
   },
